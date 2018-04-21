@@ -20,6 +20,7 @@ __http_response_headers: dict = {
 __ocsp_response_trailing_bytes = bytes([0x30, 0x03, 0x0a, 0x01])
 
 __ocsp_responses: dict = {
+    "successful": __ocsp_response_trailing_bytes + bytes([0x00]),  # Requires the 'optional bytes', but we try anyway.
     "malformed_request": __ocsp_response_trailing_bytes + bytes([0x01]),
     "internal_error": __ocsp_response_trailing_bytes + bytes([0x02]),
     "try_later": __ocsp_response_trailing_bytes + bytes([0x03]),
@@ -65,6 +66,10 @@ def get_response(mode: str) -> bytes:
         return bytes()
     else:
         return __build__full_ocsp_response(response_type=mode)
+
+
+def get_ok_ocsp_response() -> bytes:
+    return __build__full_ocsp_response("successful")
 
 
 def get_malformed_request_ocsp_response() -> bytes:

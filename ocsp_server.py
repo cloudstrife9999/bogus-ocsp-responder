@@ -4,7 +4,7 @@
 import sys
 
 
-from socket import socket
+from socket import socket, SO_REUSEADDR, SOL_SOCKET
 from client_manager import ClientManager
 from multiprocessing import Process
 
@@ -42,6 +42,8 @@ def __get_mode() -> str:
         return "sig_required"
     elif mode_code == "7":
         return "unauthorized"
+    elif mode_code == "8":
+        return "ok"
     else:
         __print_help()
         sys.exit(-1)
@@ -57,7 +59,8 @@ def __print_help() -> None:
     print("4 --> always reply to clients with an 'internal_error' OCSP response over HTTP.")
     print("5 --> always reply to clients with a 'try_later' OCSP response over HTTP.")
     print("6 --> always reply to clients with a 'sig_required' OCSP response over HTTP.")
-    print("7 --> always reply to clients with a 'unauthorized' OCSP response over HTTP.\n")
+    print("7 --> always reply to clients with a 'unauthorized' OCSP response over HTTP.")
+    print("8 --> always reply to clients with a 'successful' OCSP response over HTTP (without the required bytes).\n")
 
 
 def __print_server_mode(mode: str) -> None:
@@ -75,6 +78,7 @@ def __print_server_mode(mode: str) -> None:
 
 def __start_server(mode: str) -> None:
     server_socket: socket = socket()
+    server_socket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
     server_socket.bind(("0.0.0.0", 80))
     server_socket.listen()
 
