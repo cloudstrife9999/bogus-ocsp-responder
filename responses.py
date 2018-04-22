@@ -3,7 +3,7 @@ __http_version: str = "HTTP/1.1"
 __space: str = " "
 __terminators: str = "\r\n"
 
-__http_status_codes: dict = {
+http_status_codes: dict = {
     "http_200": "200 OK",
     "http_301": "301 Moved Permanently",
     "http_302": "302 Found",
@@ -20,12 +20,12 @@ __http_status_codes: dict = {
 }
 
 __http_response_headers: dict = {
-    "200": {
+    "default": {
         "Content-Type": "application/ocsp-response",
         "Server": "ocsp_responder",
         "Content-Length": "5"
     },
-    "default": {
+    "http_200": {
         "Content-Length": "0"
     }
 }
@@ -62,19 +62,19 @@ def __build_http_response(response_type: str, use_headers: bool) -> str:
 
 def __get_http_code(response_type: str) -> str:
     if response_type.startswith("http_"):  # plain HTTP response without OCSP data.
-        return __http_status_codes[response_type]
+        return http_status_codes[response_type]
     else:  # response_type is one of the OCSP response types.
-        return __http_status_codes["http_200"]
+        return http_status_codes["http_200"]
 
 
 def __build_headers(response_type: str) -> str:
     headers: str = ""
 
     if response_type != "http_200":  # by construction, it must be an OCSP response type in this case.
-        for k, v in __http_response_headers["200"].items():
+        for k, v in __http_response_headers["default"].items():
             headers += k + ":" + __space + v + __terminators
     else:  # by construction, it must be "http_200" --> we want to send the default headers.
-        for k, v in __http_response_headers["default"].items():
+        for k, v in __http_response_headers["http_200"].items():
             headers += k + ":" + __space + v + __terminators
 
     return headers

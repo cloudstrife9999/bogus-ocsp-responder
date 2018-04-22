@@ -7,29 +7,37 @@ import sys
 from socket import socket, SO_REUSEADDR, SOL_SOCKET
 from client_manager import ClientManager
 from multiprocessing import Process
+from responses import http_status_codes
 
 
 __modes: dict = {
-    "0": "ignore",
-    "1": "http_200",
-    "2": "http_301",
-    "3": "http_302",
-    "4": "http_307",
-    "5": "http_308",
-    "6": "http_400",
-    "7": "http_401",
-    "8": "http_403",
-    "9": "http_404",
-    "10": "http_405",
-    "11": "http_408",
-    "12": "http_410",
-    "13": "http_500",
-    "14": "malformed_request",
-    "15": "internal_error",
-    "16": "try_later",
-    "17": "sig_required",
-    "18": "unauthorized",
-    "19": "successful"
+    "0": {
+        "0": "http_200",
+        "1": "http_301",
+        "2": "http_302",
+        "3": "http_307",
+        "4": "http_308",
+        "5": "http_400",
+        "6": "http_401",
+        "7": "http_403",
+        "8": "http_404",
+        "9": "http_405",
+        "10": "http_408",
+        "11": "http_410",
+        "12": "http_500"
+    },
+    "1": {
+        "0": "successful",
+        "1": "malformed_request",
+        "2": "internal_error",
+        "3": "try_later",
+        "4": "__unused__",
+        "5": "sig_required",
+        "6": "unauthorized"
+    },
+    "2": {
+        "0": "ignore"
+    }
 }
 
 
@@ -44,50 +52,107 @@ def main():
 
 def __print_server_welcome() -> None:
     print("Welcome to the Bogus OCSP Responder by cloudstrife9999!\n")
-    __print_help()
+    __print_help(mode_code="help")
 
 
 def __get_mode() -> str:
-    mode_code: str = input("Please, select the number corresponding to the mode you want to use:\n")
+    mode_code: str = input("Please choose the number corresponding to a class of behaviors:\n")
 
-    if mode_code in __modes.keys():
-        return __modes[mode_code]
+    if mode_code not in __modes.keys():
+        __print_help(mode_code="help")
+        sys.exit(-1)
     else:
-        __print_help()
+        return __get_sub_mode(mode_code=mode_code)
+
+
+def __get_sub_mode(mode_code: str) -> str:
+    if mode_code == "0":
+        print("\nYou chose to send a plain HTTP response without OCSP data.")
+        __print_plain_http_mode_help()
+        sub_mode_code = input("Select a behavior:\n")
+    elif mode_code == "1":
+        print("\nYou chose to send an OCSP response over plain HTTP.")
+        __print_ocsp_over_http_mode_help()
+        sub_mode_code = input("Select a behavior:\n")
+    elif mode_code == "2":
+        print("\nYou chose a miscellaneous behavior.")
+        __print_misc_mode_help()
+        sub_mode_code = input("Select a behavior:\n")
+    else:
+        raise ValueError()  # this branch cannot be reached.
+
+    return __validate_sub_mode_code(mode_code=mode_code, sub_mode_code=sub_mode_code)
+
+
+def __validate_sub_mode_code(mode_code: str, sub_mode_code: str) -> str:
+    if sub_mode_code not in __modes[mode_code].keys():
+        __print_help(mode_code=mode_code)
         sys.exit(-1)
 
+    return __modes[mode_code][sub_mode_code]
 
-def __print_help() -> None:
-    print("Available modes:")
-    print("<mode> --> <meaning>")
-    print("0 --> always ignore OCSP requests from clients.")
-    print("1 --> always reply to clients with a '200 OK' HTTP response without OCSP data.")
-    print("2 --> always reply to clients with a '301 Moved Permanently' HTTP response without OCSP data.")
-    print("3 --> always reply to clients with a '302 Found' HTTP response without OCSP data.")
-    print("4 --> always reply to clients with a '307 Temporary Redirect' HTTP response without OCSP data.")
-    print("5 --> always reply to clients with a '308 Permanent Redirect' HTTP response without OCSP data.")
-    print("6 --> always reply to clients with a '400 Bad Request' HTTP response without OCSP data.")
-    print("7 --> always reply to clients with a '401 Unauthorized' HTTP response without OCSP data.")
-    print("8 --> always reply to clients with a '403 Forbidden' HTTP response without OCSP data.")
-    print("9 --> always reply to clients with a '404 Not Found' HTTP response without OCSP data.")
-    print("10 --> always reply to clients with a '405 Method Not Allowed' HTTP response without OCSP data.")
-    print("11 --> always reply to clients with a '408 Request Timeout' HTTP response without OCSP data.")
-    print("12 --> always reply to clients with a '410 Gone' HTTP response without OCSP data.")
-    print("13 --> always reply to clients with a '500 Internal Server Error' HTTP response without OCSP data.")
-    print("14 --> always reply to clients with a 'malformed_request' OCSP response over HTTP.")
-    print("15 --> always reply to clients with an 'internal_error' OCSP response over HTTP.")
-    print("16 --> always reply to clients with a 'try_later' OCSP response over HTTP.")
-    print("17 --> always reply to clients with a 'sig_required' OCSP response over HTTP.")
-    print("18 --> always reply to clients with a 'unauthorized' OCSP response over HTTP.")
-    print("19 --> always reply to clients with a 'successful' OCSP response over HTTP (without the required bytes).\n")
+
+def __print_help(mode_code: str) -> None:
+    if mode_code == "help":
+        __print_main_help()
+    elif mode_code == "0":
+        __print_plain_http_mode_help()
+    elif mode_code == "1":
+        __print_ocsp_over_http_mode_help()
+    elif mode_code == "2":
+        __print_misc_mode_help()
+
+
+def __print_main_help() -> None:
+    print("Available classes of behaviors:")
+    print("<code> --> <meaning>")
+    print("0 --> choose a plain HTTP response without OCSP data.")
+    print("1 --> choose an OCSP response over plain HTTP.")
+    print("2 --> choose a miscellaneous behavior.\n")
+
+
+def __print_plain_http_mode_help() -> None:
+    print("Available plain HTTP responses without OCSP data:")
+    print("<code> --> <meaning>")
+    print("0 --> always reply to clients with a '200 OK' HTTP response without OCSP data.")
+    print("1 --> always reply to clients with a '301 Moved Permanently' HTTP response without OCSP data.")
+    print("2 --> always reply to clients with a '302 Found' HTTP response without OCSP data.")
+    print("3 --> always reply to clients with a '307 Temporary Redirect' HTTP response without OCSP data.")
+    print("4 --> always reply to clients with a '308 Permanent Redirect' HTTP response without OCSP data.")
+    print("5 --> always reply to clients with a '400 Bad Request' HTTP response without OCSP data.")
+    print("6 --> always reply to clients with a '401 Unauthorized' HTTP response without OCSP data.")
+    print("7 --> always reply to clients with a '403 Forbidden' HTTP response without OCSP data.")
+    print("8 --> always reply to clients with a '404 Not Found' HTTP response without OCSP data.")
+    print("9 --> always reply to clients with a '405 Method Not Allowed' HTTP response without OCSP data.")
+    print("10 --> always reply to clients with a '408 Request Timeout' HTTP response without OCSP data.")
+    print("11 --> always reply to clients with a '410 Gone' HTTP response without OCSP data.")
+    print("12 --> always reply to clients with a '500 Internal Server Error' HTTP response without OCSP data.\n")
+
+
+def __print_ocsp_over_http_mode_help() -> None:
+    print("Available OCSP responses over plain HTTP:")
+    print("<code> --> <meaning>")
+    print("0 --> always reply to clients with a 'successful' OCSP response over HTTP (without the required bytes).")
+    print("1 --> always reply to clients with a 'malformed_request' OCSP response over HTTP.")
+    print("2 --> always reply to clients with an 'internal_error' OCSP response over HTTP.")
+    print("3 --> always reply to clients with a 'try_later' OCSP response over HTTP.")
+    print("4 --> always reply to clients with the sequence [0x30, 0x03, 0x0a, 0x01, 0x04] over HTTP.")
+    print("5 --> always reply to clients with a 'sig_required' OCSP response over HTTP.")
+    print("6 --> always reply to clients with an 'unauthorized' OCSP response over HTTP.\n")
+
+
+def __print_misc_mode_help() -> None:
+    print("Available miscellaneous behaviors:")
+    print("<code> --> <meaning>")
+    print("0 --> always ignore OCSP requests from clients.\n")
 
 
 def __print_server_mode(mode: str) -> None:
     if mode == "ignore":
         msg: str = "ignore OCSP requests from clients."
     elif mode.startswith("http_"):
-        msg: str = "reply to clients with a '" + mode + "' HTTP response without OCSP data."
-    elif mode == "internal_error":
+        msg: str = "reply to clients with a '" + http_status_codes[mode] + "' HTTP response without OCSP data."
+    elif mode in ["internal_error", "unauthorized"]:
         msg: str = "reply to clients with an '" + mode + "' OCSP response over HTTP."
     else:
         msg: str = "reply to clients with a '" + mode + "' OCSP response over HTTP."
