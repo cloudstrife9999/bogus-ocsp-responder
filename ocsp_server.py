@@ -154,6 +154,8 @@ def __print_server_mode(mode: str) -> None:
         msg: str = "reply to clients with a '" + http_status_codes[mode] + "' HTTP response without OCSP data."
     elif mode in ["internal_error", "unauthorized"]:
         msg: str = "reply to clients with an '" + mode + "' OCSP response over HTTP."
+    elif mode == "__unused__":
+        msg: str = "reply to clients with the sequence [0x30, 0x03, 0x0a, 0x01, 0x04] over HTTP."
     else:
         msg: str = "reply to clients with a '" + mode + "' OCSP response over HTTP."
 

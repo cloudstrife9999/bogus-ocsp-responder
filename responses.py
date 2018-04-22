@@ -37,6 +37,7 @@ __ocsp_responses: dict = {
     "malformed_request": __ocsp_response_trailing_bytes + bytes([0x01]),
     "internal_error": __ocsp_response_trailing_bytes + bytes([0x02]),
     "try_later": __ocsp_response_trailing_bytes + bytes([0x03]),
+    "__unused__": __ocsp_response_trailing_bytes + bytes([0x04]),
     "sig_required": __ocsp_response_trailing_bytes + bytes([0x05]),
     "unauthorized": __ocsp_response_trailing_bytes + bytes([0x06])
 }
