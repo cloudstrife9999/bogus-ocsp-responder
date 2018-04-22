@@ -2,7 +2,7 @@ import binascii
 
 
 class OCSPDissector:
-    def __init__(self, raw_ocsp_data: bytes):
+    def __init__(self, raw_ocsp_data: bytes) -> None:
         if raw_ocsp_data is None:
             raise ValueError("Bad OCSP raw data.")
 

@@ -2,7 +2,7 @@ from ocsp_dissector import OCSPDissector
 
 
 class HTTPDissector:
-    def __init__(self, raw_data: bytes):
+    def __init__(self, raw_data: bytes) -> None:
         if raw_data is None:
             raise ValueError("Bad HTTP raw data")
 
@@ -20,13 +20,25 @@ class HTTPDissector:
         self.__parse_first_line(line=first_line)
         self.__parse_headers()
         self.__ocsp_raw_request = self.__raw_data[self.__next_position_to_parse:]
+        self.__check_ocsp_request_length()
         self.__parse_ocsp_request()
 
-    def dump(self):
+    def __check_ocsp_request_length(self) -> None:
+        if "Content-Length" in self.__headers:
+            length = int(self.__headers["Content-Length"])
+
+            if len(self.__ocsp_raw_request) < length:
+                raise ValueError("The OCSP request is shorter than expected.")
+            elif len(self.__ocsp_raw_request) > length:
+                raise ValueError("The OCSP request is longer than expected.")
+            else:
+                print("The OCSP request is %d characters long, which matches what expected.\n" % length)
+
+    def dump(self) -> None:
         if self.__method is None:
             raise ValueError("Nothing to visualize!")
         else:
-            s: str = "Dissected HTTP:\n"
+            s: str = "Dissected HTTP message:\n"
             s += " Method: %s\n" % self.__method
             s += " Requested resource: %s\n" % self.__resource
             s += " HTTP version: %s\n" % self.__http_version

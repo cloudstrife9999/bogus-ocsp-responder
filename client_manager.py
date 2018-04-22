@@ -15,7 +15,7 @@ class ClientManager:
         self.__response_bytes: bytes = responses.get_response(mode=self.__mode)
 
     def manage_client(self) -> None:
-        data: bytes = self.__client_socket.recv(1024)  # We read only 1024 bytes. Bigger requests will result in errors.
+        data: bytes = self.__client_socket.recv(1024)  # We read 1024 bytes at most.
 
         print("Received request from %s" % self.__client_address)
 
@@ -23,8 +23,9 @@ class ClientManager:
             dissector: HTTPDissector = HTTPDissector(raw_data=data)
             dissector.parse()
             dissector.dump()
-        except (IndexError, ValueError, TypeError):
-            print("An internal error occurred while analyzing the request.\n")
+        except (IndexError, ValueError, TypeError) as e:
+            print("An internal error occurred while analyzing the request:")
+            print(" %s\n" % e)
 
         if not self.__ignore_ocsp_requests:
             print("Sending '" + self.__mode + "' to %s" % self.__client_address)
