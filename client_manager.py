@@ -23,9 +23,8 @@ class ClientManager:
             dissector: HTTPDissector = HTTPDissector(raw_data=data)
             dissector.parse()
             dissector.dump()
-        except (IndexError, ValueError, TypeError) as e:
+        except (IndexError, ValueError, TypeError):
             print("An internal error occurred while analyzing the request.\n")
-            raise e
 
         if not self.__ignore_ocsp_requests:
             print("Sending '" + self.__mode + "' to %s" % self.__client_address)
