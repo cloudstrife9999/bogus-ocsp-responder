@@ -9,6 +9,30 @@ from client_manager import ClientManager
 from multiprocessing import Process
 
 
+__modes: dict = {
+    "0": "ignore",
+    "1": "http_200",
+    "2": "http_301",
+    "3": "http_302",
+    "4": "http_307",
+    "5": "http_308",
+    "6": "http_400",
+    "7": "http_401",
+    "8": "http_403",
+    "9": "http_404",
+    "10": "http_405",
+    "11": "http_408",
+    "12": "http_410",
+    "13": "http_500",
+    "14": "malformed_request",
+    "15": "internal_error",
+    "16": "try_later",
+    "17": "sig_required",
+    "18": "unauthorized",
+    "19": "successful"
+}
+
+
 def main():
     __print_server_welcome()
 
@@ -26,24 +50,8 @@ def __print_server_welcome() -> None:
 def __get_mode() -> str:
     mode_code: str = input("Please, select the number corresponding to the mode you want to use:\n")
 
-    if mode_code == "0":
-        return "ignore"
-    elif mode_code == "1":
-        return "404"
-    elif mode_code == "2":
-        return "500"
-    elif mode_code == "3":
-        return "malformed_request"
-    elif mode_code == "4":
-        return "internal_error"
-    elif mode_code == "5":
-        return "try_later"
-    elif mode_code == "6":
-        return "sig_required"
-    elif mode_code == "7":
-        return "unauthorized"
-    elif mode_code == "8":
-        return "ok"
+    if mode_code in __modes.keys():
+        return __modes[mode_code]
     else:
         __print_help()
         sys.exit(-1)
@@ -53,21 +61,32 @@ def __print_help() -> None:
     print("Available modes:")
     print("<mode> --> <meaning>")
     print("0 --> always ignore OCSP requests from clients.")
-    print("1 --> always reply to clients with a '404 Not Found' HTTP response.")
-    print("2 --> always reply to clients with a '500 Internal Server Error' HTTP response.")
-    print("3 --> always reply to clients with a 'malformed_request' OCSP response over HTTP.")
-    print("4 --> always reply to clients with an 'internal_error' OCSP response over HTTP.")
-    print("5 --> always reply to clients with a 'try_later' OCSP response over HTTP.")
-    print("6 --> always reply to clients with a 'sig_required' OCSP response over HTTP.")
-    print("7 --> always reply to clients with a 'unauthorized' OCSP response over HTTP.")
-    print("8 --> always reply to clients with a 'successful' OCSP response over HTTP (without the required bytes).\n")
+    print("1 --> always reply to clients with a '200 OK' HTTP response without OCSP data.")
+    print("2 --> always reply to clients with a '301 Moved Permanently' HTTP response without OCSP data.")
+    print("3 --> always reply to clients with a '302 Found' HTTP response without OCSP data.")
+    print("4 --> always reply to clients with a '307 Temporary Redirect' HTTP response without OCSP data.")
+    print("5 --> always reply to clients with a '308 Permanent Redirect' HTTP response without OCSP data.")
+    print("6 --> always reply to clients with a '400 Bad Request' HTTP response without OCSP data.")
+    print("7 --> always reply to clients with a '401 Unauthorized' HTTP response without OCSP data.")
+    print("8 --> always reply to clients with a '403 Forbidden' HTTP response without OCSP data.")
+    print("9 --> always reply to clients with a '404 Not Found' HTTP response without OCSP data.")
+    print("10 --> always reply to clients with a '405 Method Not Allowed' HTTP response without OCSP data.")
+    print("11 --> always reply to clients with a '408 Request Timeout' HTTP response without OCSP data.")
+    print("12 --> always reply to clients with a '410 Gone' HTTP response without OCSP data.")
+    print("13 --> always reply to clients with a '500 Internal Server Error' HTTP response without OCSP data.")
+    print("14 --> always reply to clients with a 'malformed_request' OCSP response over HTTP.")
+    print("15 --> always reply to clients with an 'internal_error' OCSP response over HTTP.")
+    print("16 --> always reply to clients with a 'try_later' OCSP response over HTTP.")
+    print("17 --> always reply to clients with a 'sig_required' OCSP response over HTTP.")
+    print("18 --> always reply to clients with a 'unauthorized' OCSP response over HTTP.")
+    print("19 --> always reply to clients with a 'successful' OCSP response over HTTP (without the required bytes).\n")
 
 
 def __print_server_mode(mode: str) -> None:
     if mode == "ignore":
         msg: str = "ignore OCSP requests from clients."
-    elif mode in ["404", "500"]:
-        msg: str = "reply to clients with a '" + mode + "' HTTP response."
+    elif mode.startswith("http_"):
+        msg: str = "reply to clients with a '" + mode + "' HTTP response without OCSP data."
     elif mode == "internal_error":
         msg: str = "reply to clients with an '" + mode + "' OCSP response over HTTP."
     else:
