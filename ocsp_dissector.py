@@ -13,13 +13,13 @@ class OCSPDissector:
         self.__serial_number: int = -1
 
     def parse(self):
-        if len(self.__raw_data) != 85:
+        if len(self.__raw_data) < 68:
             raise ValueError("Bad OCSP raw data.")
         else:
             self.__hash_algorithm = self.__raw_data[14:19]
             self.__issuer_name_hash = self.__raw_data[23:43]
             self.__issuer_key_hash = self.__raw_data[45:65]
-            self.__serial_number = self.__raw_data[67:85]
+            self.__serial_number = self.__raw_data[67:67+int(self.__raw_data[66])]
 
     def dump(self) -> str:
         s: str = ""

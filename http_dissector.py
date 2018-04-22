@@ -70,9 +70,6 @@ class HTTPDissector:
         if method_candidate not in ["GET", "POST"]:
             raise ValueError("Bad request method!")
 
-        if resource_candidate != "/":
-            raise ValueError("Bad resource requested.")
-
         if version_candidate != "HTTP/1.1":
             raise ValueError("Bad HTTP version!")
 
