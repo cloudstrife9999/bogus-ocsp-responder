@@ -6,6 +6,10 @@ from socket import socket
 from http_dissector import HTTPDissector
 
 
+def _generate_hex_dump(raw_data: bytes) -> str:
+    return " ".join(hex(b) for b in raw_data) + "\n"
+
+
 class ClientManager:
     def __init__(self, client_socket: socket, client_addr: str, mode: str):
         self.__client_socket: socket = client_socket
@@ -24,8 +28,9 @@ class ClientManager:
             dissector.parse()
             dissector.dump()
         except (IndexError, ValueError, TypeError) as e:
-            print("An internal error occurred while analyzing the request:")
-            print(" %s\n" % e)
+            print("An internal error occurred while analyzing the request: '%s'\n" % e)
+            print("Hex dump of the received bytes:")
+            print(_generate_hex_dump(raw_data=data))
 
         if not self.__ignore_ocsp_requests:
             print("Sending '" + self.__mode + "' to %s" % self.__client_address)
