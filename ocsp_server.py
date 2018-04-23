@@ -59,8 +59,7 @@ def __get_mode() -> str:
     mode_code: str = input("Please choose the number corresponding to a class of behaviors:\n")
 
     if mode_code not in __modes.keys():
-        __print_help(mode_code="help")
-        sys.exit(-1)
+        __quit_with_help(mode_code="help")
     else:
         return __get_sub_mode(mode_code=mode_code)
 
@@ -68,28 +67,36 @@ def __get_mode() -> str:
 def __get_sub_mode(mode_code: str) -> str:
     if mode_code == "0":
         print("\nYou chose to send a plain HTTP response without OCSP data.")
-        __print_plain_http_mode_help()
-        sub_mode_code = input("Select a behavior:\n")
     elif mode_code == "1":
         print("\nYou chose to send an OCSP response over plain HTTP.")
-        __print_ocsp_over_http_mode_help()
-        sub_mode_code = input("Select a behavior:\n")
     elif mode_code == "2":
         print("\nYou chose a miscellaneous behavior.")
-        __print_misc_mode_help()
-        sub_mode_code = input("Select a behavior:\n")
     else:
         raise ValueError()  # this branch cannot be reached.
+
+    __print_help(mode_code=mode_code)
+    sub_mode_code = input("Select a behavior:\n")
 
     return __validate_sub_mode_code(mode_code=mode_code, sub_mode_code=sub_mode_code)
 
 
 def __validate_sub_mode_code(mode_code: str, sub_mode_code: str) -> str:
     if sub_mode_code not in __modes[mode_code].keys():
-        __print_help(mode_code=mode_code)
-        sys.exit(-1)
+        __quit_with_help(mode_code=mode_code)
 
     return __modes[mode_code][sub_mode_code]
+
+
+def __quit_with_help(mode_code: str) -> None:
+    msg = "behavior"
+
+    if mode_code == "help":
+        msg += " class"
+
+    print("\nUnrecognized %s.\n" % msg)
+
+    __print_help(mode_code=mode_code)
+    sys.exit(-1)
 
 
 def __print_help(mode_code: str) -> None:
@@ -159,7 +166,7 @@ def __print_server_mode(mode: str) -> None:
     else:
         msg: str = "reply to clients with a '" + mode + "' OCSP response over HTTP."
 
-    print("You chose to always %s." % msg)
+    print("\nYou chose to always %s." % msg)
 
 
 def __start_server(mode: str) -> None:
@@ -170,7 +177,7 @@ def __start_server(mode: str) -> None:
 
     server_data: str = server_socket.getsockname()[0] + ":" + str(server_socket.getsockname()[1])
 
-    print("Bound to %s\n" % server_data)
+    print("\nServer socket bound to %s\n" % server_data)
 
     try:
         __loop(server_socket=server_socket, mode=mode)
